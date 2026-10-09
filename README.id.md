@@ -53,7 +53,7 @@ OK    screenshots/04_mobile.png
 Done: 4 OK, 0 failed. Output in /path/to/gushot/demo/screenshots
 ```
 
-Gambarnya ada di `demo/screenshots/`. Di Windows PowerShell, isi variabelnya dulu: `$env:DEMO_PASSWORD='demo'`, lalu jalankan perintah `node` yang sama.
+Gambarnya ada di `demo/screenshots/`; [demo/README.md](demo/README.md) menjelaskan setiap langkah config tersebut. Di Windows PowerShell, isi variabelnya dulu: `$env:DEMO_PASSWORD='demo'`, lalu jalankan perintah `node` yang sama.
 
 ## Menulis config
 

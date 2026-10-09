@@ -53,7 +53,7 @@ OK    screenshots/04_mobile.png
 Done: 4 OK, 0 failed. Output in /path/to/gushot/demo/screenshots
 ```
 
-The images are in `demo/screenshots/`. On Windows PowerShell, set the variable first: `$env:DEMO_PASSWORD='demo'`, then run the same `node` command.
+The images are in `demo/screenshots/`; [demo/README.md](demo/README.md) explains each step of that config. On Windows PowerShell, set the variable first: `$env:DEMO_PASSWORD='demo'`, then run the same `node` command.
 
 ## Writing a config
 
