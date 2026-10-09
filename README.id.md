@@ -30,7 +30,9 @@ Rahasia jangan ditulis di JSON: `{{NAMA_ENV}}` diisi dari environment (`APP_PASS
 
 Folder [`demo/`](demo/) berisi aplikasi pesanan sederhana dalam satu file HTML beserta config untuk memotretnya. Nama pelanggan, nomor HP, dan nama pengguna yang login di-blur, dan tombol yang dibahas di panduan diberi kotak merah:
 
-![Dasbor yang dipotret GuShot](demo/screenshots/02_dashboard.png)
+![Demo GuShot: login, OTP, blur, sorotan, modal](demo/gushot-demo.gif)
+
+Video ukuran penuh: [demo/gushot-demo.mp4](demo/gushot-demo.mp4). Hasil screenshot-nya ada di [demo/screenshots/](demo/screenshots/).
 
 Config-nya login, membaca OTP dari file log, lalu mengambil empat screenshot (login, dasbor, modal New order, dan tampilan ukuran HP). Coba sendiri:
 

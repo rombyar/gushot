@@ -28,7 +28,9 @@ Requires Node 18+ and Chrome or Edge (auto-detected, or set `"chrome"` / the `CH
 
 [`demo/`](demo/) has a small orders app in one HTML file and the config that captures it. Customer names, phone numbers, and the signed-in user are blurred, and the button the guide talks about gets a red box:
 
-![Dashboard captured by GuShot](demo/screenshots/02_dashboard.png)
+![GuShot demo: login, OTP, blur, highlight, modal](demo/gushot-demo.gif)
+
+Full-size video: [demo/gushot-demo.mp4](demo/gushot-demo.mp4). The screenshots it produces are in [demo/screenshots/](demo/screenshots/).
 
 The config logs in, reads the OTP from a log file, and takes four shots (login, dashboard, the New order modal, and a phone-sized view). Run it yourself:
 
