@@ -95,7 +95,7 @@ What you will use most:
 
 | In a shot | Does |
 |---|---|
-| `highlight` | draws a red box around the elements a guide step talks about |
+| `highlight` | draws a red box around the elements a guide step talks about; `{ "selector": "#save", "label": "2" }` adds a numbered badge |
 | `blur` | blurs extra elements in this shot (`alwaysBlur` does it for every shot) |
 | `element` | captures only one element, such as a modal or a form |
 | `fullPage` | captures the whole scrolling page |
@@ -122,11 +122,14 @@ Every key and step, including `select`, `press`, `scrollTo`, `hide`, `theme`, an
 ```bash
 node <path-to>/shot.cjs my-guide.json             # every shot
 node <path-to>/shot.cjs my-guide.json 03 login    # only shots whose name contains "03" or "login"
+node <path-to>/shot.cjs my-guide.json --check     # run the steps, save nothing
 ```
 
 - Each shot prints `OK <file>` or `FAIL <name> - <reason>`. A failed shot does not stop the rest.
 - A misspelled key prints a `WARN unknown key` line instead of being silently ignored.
 - Exit code: `0` all shots OK, `1` at least one failed, `2` the dependency is not installed.
+- `--check` runs every step but saves no images. Use it after a UI change, or in CI, to find broken selectors early.
+- `"scale": 2` in the config gives double-resolution images that stay sharp in a PDF or on a HiDPI screen.
 - Add `"headless": false` to the config to watch the browser while it works.
 
 ## Using it with an AI agent

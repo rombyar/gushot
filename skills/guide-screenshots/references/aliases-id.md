@@ -7,6 +7,7 @@ Kunci utama berbahasa Inggris. Kunci bahasa Indonesia di bawah tetap diterima da
 | Indonesia | English | Arti |
 |---|---|---|
 | `bahasa` | `lang` | bahasa pesan terminal |
+| `skala` | `scale` | kerapatan piksel (`2` = tajam untuk cetak/PDF) |
 | `keluar` | `out` | folder hasil |
 | `blurSelalu` | `alwaysBlur` | selector yang selalu dikaburkan |
 | `kekuatanBlur` | `blurStrength` | radius blur (px) |

@@ -4,7 +4,7 @@ description: Capture screenshots for web app user guides, tutorials, manuals, an
 license: MIT
 compatibility: Requires Node.js 18+, npm, a local Chrome or Edge, and shell access to run commands. Works with any agent that supports Agent Skills.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Guide screenshots
@@ -28,8 +28,8 @@ Do not capture screenshots by hand through a browser tool and do not write a new
 
 ## Key summary
 
-Root: `base`, `out`, `viewport`, `theme`, `alwaysBlur`, `css`, `delay`, `sessions` ({ name: [steps] }), `shots`.
-Shot: `name`, `session`, `url`, `steps`, `element`, `fullPage`, `blur`, `hide`, `highlight`, `viewport`, `freshSession`, `delay`.
+Root: `base`, `scale` (2 = sharp for PDF/print), `out`, `viewport`, `theme`, `alwaysBlur`, `css`, `delay`, `sessions` ({ name: [steps] }), `shots`.
+Shot: `name`, `session`, `url`, `steps`, `element`, `fullPage`, `blur`, `hide`, `highlight` (selectors, or `{ selector, label }` for a numbered badge matching the guide's step numbers), `viewport`, `freshSession`, `delay`.
 Steps: `open`, `type`+`text`, `click`, `clickText` (+`within`), `select`+`value`, `press`, `wait` (ms or selector), `waitText`, `scrollTo`, `js`, `run` (+`cwd`), `otp` { `file`, `pattern` (regex, group 1 = code), `into`, `submit` }.
 
 ## Workflow
@@ -44,6 +44,7 @@ Steps: `open`, `type`+`text`, `click`, `clickText` (+`within`), `select`+`value`
    ```bash
    node "<SKILL>/scripts/shot.cjs" <config.json> <filter>
    ```
+   Add `--check` to run the steps without saving images, e.g. to find selectors broken by a UI change.
    Passwords come from env (`{{APP_PASSWORD}}` in the config), never written in the JSON.
 7. **Check the output.** Every shot prints `OK <file>` or `FAIL <name> - <reason>`; exit code 1 means at least one failed. For `FAIL`, fix the selector/step and rerun only that shot. If you can view images, open 1-2 of the PNGs (not all) to confirm CSS loaded, the session is logged in, and blur applied. If you cannot view images, check that file sizes are not suspiciously small and ask the user to glance at one.
 8. **Insert into the guide** (Markdown/HTML) and rebuild the PDF if the project has a builder for it.

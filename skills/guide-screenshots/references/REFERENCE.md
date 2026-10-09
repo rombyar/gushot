@@ -10,7 +10,8 @@ Indonesian keys are accepted as aliases: [aliases-id.md](aliases-id.md).
 |---|---|
 | `base` | app base URL; shot `url` may be relative (`/admin`) |
 | `out` | output folder (default `output`) |
-| `viewport` | default `{ width: 1280, height: 900, deviceScaleFactor: 1 }` |
+| `scale` | pixel density for every shot: `2` gives sharp images for print, PDF, and HiDPI screens (default 1) |
+| `viewport` | default `{ width: 1280, height: 900, deviceScaleFactor: scale }` |
 | `theme` | `light` / `dark` (prefers-color-scheme) |
 | `alwaysBlur` | CSS selectors blurred in every shot |
 | `blurStrength` | blur radius in px (default 6) |
@@ -35,7 +36,7 @@ Indonesian keys are accepted as aliases: [aliases-id.md](aliases-id.md).
 | `fullPage` | `true` = whole page, not just the viewport |
 | `blur` | extra selectors to blur |
 | `hide` | selectors to hide |
-| `highlight` | selectors outlined with a red box (the button a guide step mentions) |
+| `highlight` | elements outlined with a red box (the button a guide step mentions): `["#save"]`, or with a numbered badge: `[{ "selector": "#name", "label": "1" }, { "selector": "#save", "label": "2" }]` |
 | `viewport` | size for this shot only (e.g. mobile) |
 | `freshSession` | `true` = log in again first (clean state) |
 | `delay` | extra ms before capturing |
@@ -65,4 +66,5 @@ OTP: the code is capture group 1 of the last `pattern` match written to `file` a
 
 - One line per shot: `OK <file>` or `FAIL <name> - <reason>` (`GAGAL` with `lang: id`), then a summary.
 - `WARN unknown key "x"` (`PERINGATAN` with `lang: id`): a config key the tool does not know, most likely a typo; it is ignored. Keys starting with `_` or `$` are allowed for comments.
+- `--check` anywhere on the command line runs every step and checks that `element` exists, but saves no images. Use it after UI changes, or in CI, to find broken selectors.
 - Exit 0 = all OK, 1 = at least one shot failed (others still run), 2 = dependency missing.

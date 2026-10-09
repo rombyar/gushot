@@ -13,7 +13,7 @@
     ]
   },
   "shots": [
-    { "name": "t01_after_login", "session": "user", "highlight": [".open"] },
+    { "name": "t01_after_login", "session": "user", "highlight": [{ "selector": ".open", "label": "1" }] },
     { "name": "t02_modal", "session": "user", "steps": [{ "clickText": "Add" }, { "wait": ".modal" }], "element": ".modal" },
     { "name": "t03_mobile", "session": "user", "viewport": { "width": 390, "height": 600 } },
     { "name": "t04_expected_failure", "session": "user", "element": ".does-not-exist", "higlight": [".typo-on-purpose"] }

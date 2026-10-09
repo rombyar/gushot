@@ -95,7 +95,7 @@ Yang paling sering dipakai:
 
 | Di dalam shot | Fungsi |
 |---|---|
-| `highlight` | memberi kotak merah pada elemen yang dibahas di langkah panduan |
+| `highlight` | memberi kotak merah pada elemen yang dibahas di langkah panduan; `{ "selector": "#save", "label": "2" }` menambah nomor langkah |
 | `blur` | mem-blur elemen tambahan di shot ini (`alwaysBlur` berlaku untuk semua shot) |
 | `element` | memotret satu elemen saja, misalnya modal atau form |
 | `fullPage` | memotret seluruh halaman sampai bawah |
@@ -124,11 +124,14 @@ Kunci config juga bisa ditulis dalam bahasa Indonesia (`buka`, `klik`, `sorot`, 
 ```bash
 node <path>/shot.cjs panduan.json             # semua shot
 node <path>/shot.cjs panduan.json 03 login    # hanya shot yang namanya mengandung "03" atau "login"
+node <path>/shot.cjs panduan.json --check     # jalankan langkah, tanpa menyimpan gambar
 ```
 
 - Setiap shot mencetak `OK <file>` atau `FAIL <nama> - <alasan>`. Shot yang gagal tidak menghentikan yang lain.
 - Kunci yang salah ketik memunculkan baris `WARN unknown key`, tidak diabaikan diam-diam.
 - Kode keluar: `0` semua OK, `1` ada yang gagal, `2` dependensi belum dipasang.
+- `--check` menjalankan semua langkah tanpa menyimpan gambar. Pakai setelah tampilan berubah, atau di CI, untuk menemukan selector yang rusak lebih awal.
+- `"scale": 2` di config menghasilkan gambar resolusi ganda yang tetap tajam di PDF atau layar HiDPI.
 - Tambahkan `"headless": false` di config untuk melihat browser saat bekerja.
 
 ## Dipakai lewat agen AI

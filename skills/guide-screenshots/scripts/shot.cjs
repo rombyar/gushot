@@ -2,7 +2,9 @@
 /**
  * GuShot (Guide User Shot): capture web app user-guide screenshots from a single JSON config.
  *
- *   node shot.cjs <config.json> [filter...]   # filter = only shots whose name contains that text
+ *   node shot.cjs <config.json> [filter...] [--check]
+ *   filter  = only shots whose name contains that text
+ *   --check = run every step but save no images (catch broken selectors)
  *
  * Config format: see ../assets/config.example.json and ../references/REFERENCE.md.
  * Config keys are English; the Indonesian keys from v1 are accepted as aliases.
@@ -27,7 +29,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // ---------- messages (en primary, id secondary) ----------
 const MSG = {
   en: {
-    usage: 'Usage: node shot.cjs <config.json> [filter...]',
+    usage: 'Usage: node shot.cjs <config.json> [filter...] [--check]',
     envMissing: (k) => `Environment variable ${k} is not set`,
     noChrome: 'Chrome/Edge not found, set "chrome" in the config or the CHROME_PATH env',
     textNotFound: (t) => `text "${t}" not found`,
@@ -38,11 +40,11 @@ const MSG = {
     noElement: (s) => `element ${s} not found`,
     unknownKey: (k) => `WARN unknown key "${k}" (typo?), ignored`,
     noShots: 'No matching shots.',
-    ok: 'OK   ', fail: 'FAIL ',
+    ok: 'OK   ', fail: 'FAIL ', checked: (n) => `${n} (checked, not saved)`,
     done: (ok, bad, out) => `\nDone: ${ok} OK, ${bad} failed. Output in ${out}`,
   },
   id: {
-    usage: 'Pemakaian: node shot.cjs <config.json> [saring...]',
+    usage: 'Pemakaian: node shot.cjs <config.json> [saring...] [--check]',
     envMissing: (k) => `Environment ${k} belum diisi`,
     noChrome: 'Chrome/Edge tidak ditemukan, isi "chrome" di konfigurasi atau env CHROME_PATH',
     textNotFound: (t) => `teks "${t}" tidak ditemukan`,
@@ -53,7 +55,7 @@ const MSG = {
     noElement: (s) => `elemen ${s} tidak ada`,
     unknownKey: (k) => `PERINGATAN key "${k}" tidak dikenal (salah ketik?), diabaikan`,
     noShots: 'Tidak ada shot yang cocok.',
-    ok: 'OK   ', fail: 'GAGAL',
+    ok: 'OK   ', fail: 'GAGAL', checked: (n) => `${n} (diperiksa, tidak disimpan)`,
     done: (ok, bad, out) => `\nSelesai: ${ok} OK, ${bad} gagal. Hasil di ${out}`,
   },
 };
@@ -61,7 +63,7 @@ let T = MSG[(process.env.SHOT_LANG || 'en').slice(0, 2)] || MSG.en;
 
 // ---------- Indonesian key aliases ----------
 const ALIAS = {
-  root: { keluar: 'out', blurSelalu: 'alwaysBlur', kekuatanBlur: 'blurStrength', warnaSorot: 'highlightColor',
+  root: { skala: 'scale', keluar: 'out', blurSelalu: 'alwaysBlur', kekuatanBlur: 'blurStrength', warnaSorot: 'highlightColor',
     jeda: 'delay', tema: 'theme', sesi: 'sessions', bahasa: 'lang' },
   shot: { nama: 'name', sesi: 'session', langkah: 'steps', elemen: 'element', penuh: 'fullPage',
     sembunyikan: 'hide', sorot: 'highlight', sesiBaru: 'freshSession', jeda: 'delay' },
@@ -76,10 +78,11 @@ const alias = (o, map) => (o && typeof o === 'object' && !Array.isArray(o)
 // Known keys (after aliasing). Anything else is most likely a typo: warn once, don't fail.
 // Keys starting with "_" or "$" are free for comments / $schema.
 const KEYS = {
-  root: 'base out viewport theme alwaysBlur blurStrength highlightColor css delay headless chrome lang sessions shots',
+  root: 'base scale out viewport theme alwaysBlur blurStrength highlightColor css delay headless chrome lang sessions shots',
   shot: 'name session url steps element fullPage blur hide highlight viewport freshSession delay',
   step: 'open type text click clickText within select value press wait waitText timeout scrollTo js run cwd otp',
   otp: 'file pattern into submit tries',
+  highlight: 'selector label',
 };
 const warned = new Set();
 const check = (o, kind) => {
@@ -98,7 +101,9 @@ const step = (s) => {
 };
 
 // ---------- config ----------
-const [configFile, ...filters] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const CHECK = args.includes('--check');
+const [configFile, ...filters] = args.filter((a) => a !== '--check');
 if (!configFile) { console.error(T.usage); process.exit(1); }
 const configDir = path.dirname(path.resolve(configFile));
 const raw = fs.readFileSync(configFile, 'utf8').replace(/\{\{(\w+)\}\}/g, (_, k) => {
@@ -111,13 +116,16 @@ check(cfg, 'root');
 cfg.shots = (cfg.shots || []).map((s) => {
   const r = check(alias(s, ALIAS.shot), 'shot');
   r.steps = (r.steps || []).map(step);
+  // "#save" or { "selector": "#save", "label": "1" } (numbered badge for "click 1, then 2").
+  r.highlight = (r.highlight || []).map((h) => (typeof h === 'string' ? { selector: h } : check(h, 'highlight')));
   return r;
 });
 for (const n of Object.keys(cfg.sessions || {})) cfg.sessions[n] = cfg.sessions[n].map(step);
 
 const BASE = (cfg.base || '').replace(/\/$/, '');
 const OUT = path.resolve(configDir, cfg.out || 'output');
-const VIEWPORT = { width: 1280, height: 900, deviceScaleFactor: 1, ...(cfg.viewport || {}) };
+// scale 2 = sharp images for print/PDF and HiDPI screens (pixel size doubles).
+const VIEWPORT = { width: 1280, height: 900, deviceScaleFactor: cfg.scale ?? 1, ...(cfg.viewport || {}) };
 // "./page.html" = local file relative to the config folder.
 const absUrl = (u) => (/^[a-z]+:/i.test(u) ? u
   : u.startsWith('./') || u.startsWith('../') ? pathToFileURL(path.resolve(configDir, u)).href
@@ -220,10 +228,19 @@ async function capture(page, s) {
   if (cfg.css) css.push(cfg.css);
   const tag = css.length ? await page.addStyleTag({ content: css.join('\n') }) : null;
 
-  // Highlight (red box) the element a guide step refers to.
-  if (s.highlight?.length) {
-    await page.evaluate((sels, color) => sels.forEach((sel) => document.querySelectorAll(sel).forEach((e) => {
+  // Highlight (red box, optional numbered badge) the elements a guide step refers to.
+  if (s.highlight.length) {
+    await page.evaluate((hl, color) => hl.forEach(({ selector, label }) => document.querySelectorAll(selector).forEach((e) => {
       e.dataset.shotOutline = e.style.outline; e.style.outline = `3px solid ${color}`; e.style.outlineOffset = '3px';
+      if (label === undefined) return;
+      const r = e.getBoundingClientRect();
+      const b = document.createElement('div');
+      b.className = 'gushot-label';
+      b.textContent = label;
+      b.style.cssText = `position:absolute;z-index:2147483647;left:${r.left + scrollX - 14}px;top:${r.top + scrollY - 14}px;`
+        + `min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:12px;background:${color};color:#fff;`
+        + 'font:700 13px/24px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px #fff';
+      document.body.appendChild(b);
     })), s.highlight, cfg.highlightColor || '#e11d48');
   }
 
@@ -231,15 +248,18 @@ async function capture(page, s) {
   if (s.element) {
     const el = await page.$(s.element);
     if (!el) throw new Error(T.noElement(s.element));
-    await el.screenshot({ path: file });
-  } else {
+    if (!CHECK) await el.screenshot({ path: file });
+  } else if (!CHECK) {
     await page.screenshot({ path: file, fullPage: !!s.fullPage });
   }
 
-  if (s.highlight?.length) {
-    await page.evaluate((sels) => sels.forEach((sel) => document.querySelectorAll(sel).forEach((e) => {
-      e.style.outline = e.dataset.shotOutline || ''; e.style.outlineOffset = '';
-    })), s.highlight);
+  if (s.highlight.length) {
+    await page.evaluate((hl) => {
+      hl.forEach(({ selector }) => document.querySelectorAll(selector).forEach((e) => {
+        e.style.outline = e.dataset.shotOutline || ''; e.style.outlineOffset = '';
+      }));
+      document.querySelectorAll('.gushot-label').forEach((b) => b.remove());
+    }, s.highlight);
   }
   if (tag) await tag.evaluate((t) => t.remove());
   return file;
@@ -247,7 +267,7 @@ async function capture(page, s) {
 
 // ---------- main ----------
 (async () => {
-  fs.mkdirSync(OUT, { recursive: true });
+  if (!CHECK) fs.mkdirSync(OUT, { recursive: true });
   const shots = cfg.shots.filter((s) => !filters.length || filters.some((t) => s.name.includes(t)));
   if (!shots.length) { console.log(T.noShots); return; }
 
@@ -270,7 +290,7 @@ async function capture(page, s) {
       if (s.url) await page.goto(absUrl(s.url), { waitUntil: 'networkidle2' });
       for (const l of s.steps) await run(page, l);
       const file = await capture(page, s);
-      console.log(T.ok, path.relative(process.cwd(), file));
+      console.log(T.ok, CHECK ? T.checked(s.name) : path.relative(process.cwd(), file));
       if (s.viewport) await page.setViewport(VIEWPORT);
     } catch (e) {
       failed.push(s.name);
