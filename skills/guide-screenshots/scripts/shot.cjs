@@ -237,7 +237,7 @@ async function capture(page, s) {
       const b = document.createElement('div');
       b.className = 'gushot-label';
       b.textContent = label;
-      b.style.cssText = `position:absolute;z-index:2147483647;left:${r.left + scrollX - 14}px;top:${r.top + scrollY - 14}px;`
+      b.style.cssText = `position:absolute;z-index:2147483647;left:${r.right + scrollX - 10}px;top:${r.top + scrollY - 14}px;`
         + `min-width:24px;height:24px;padding:0 6px;box-sizing:border-box;border-radius:12px;background:${color};color:#fff;`
         + 'font:700 13px/24px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px #fff';
       document.body.appendChild(b);

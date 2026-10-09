@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 (2026-10-09)
+
+- Numbered badges sit on the top-right corner of the box instead of the top-left, so they no longer cover a form field's label.
+- Demo uses numbered steps in `01_login` and `03_new_order`; video and GIF re-recorded.
+
 ## 1.1.0 (2026-10-09)
 
 - Numbered highlights: `"highlight": [{ "selector": "#save", "label": "1" }]` puts a numbered badge on the red box, to match "click 1, then 2" in the guide. Plain selectors still work.

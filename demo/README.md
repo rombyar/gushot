@@ -42,9 +42,9 @@ The four PNGs in `screenshots/` are overwritten. Any password works; the demo ap
 
 | Shot | Shows | Uses |
 |---|---|---|
-| `01_login` | the login form, Sign in button highlighted | `highlight`, no session |
+| `01_login` | the login form, steps numbered 1 to 3 | `highlight` with `label`, no session |
 | `02_dashboard` | the orders table, "+ New order" highlighted | `session`, `highlight` |
-| `03_new_order` | only the modal | `steps` (click, wait) and `element` |
+| `03_new_order` | only the modal, fields numbered 1 to 4 | `steps` (click, wait), `element`, `highlight` with `label` |
 | `04_mobile` | the dashboard at phone width | `viewport`, `freshSession` |
 
 To try your own changes, edit `gushot.json` (for example, add `"fullPage": true` or another selector to `highlight`) and run it again. To capture just one shot, add part of its name: `... gushot.json 03`.
@@ -93,9 +93,9 @@ Keempat PNG di `screenshots/` akan ditimpa. Password apa saja bisa dipakai karen
 
 | Shot | Isi | Memakai |
 |---|---|---|
-| `01_login` | form login, tombol Sign in disorot | `highlight`, tanpa sesi |
+| `01_login` | form login, langkah diberi nomor 1 sampai 3 | `highlight` dengan `label`, tanpa sesi |
 | `02_dashboard` | tabel pesanan, tombol "+ New order" disorot | `session`, `highlight` |
-| `03_new_order` | hanya modal | `steps` (klik, tunggu) dan `element` |
+| `03_new_order` | hanya modal, kolom diberi nomor 1 sampai 4 | `steps` (klik, tunggu), `element`, `highlight` dengan `label` |
 | `04_mobile` | dasbor selebar layar HP | `viewport`, `freshSession` |
 
 Untuk mencoba perubahan sendiri, ubah `gushot.json` (misalnya tambahkan `"fullPage": true` atau selector lain di `highlight`), lalu jalankan lagi. Untuk satu shot saja, tambahkan sebagian namanya: `... gushot.json 03`.

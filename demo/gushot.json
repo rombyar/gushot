@@ -14,9 +14,11 @@
     ]
   },
   "shots": [
-    { "name": "01_login", "url": "./app.html", "steps": [{ "type": "#email", "text": "rina@kedai.example" }], "highlight": ["#login button"] },
+    { "name": "01_login", "url": "./app.html", "steps": [{ "type": "#email", "text": "rina@kedai.example" }],
+      "highlight": [{ "selector": "#email", "label": "1" }, { "selector": "#password", "label": "2" }, { "selector": "#login button", "label": "3" }] },
     { "name": "02_dashboard", "session": "admin", "highlight": ["#new-order"] },
-    { "name": "03_new_order", "session": "admin", "steps": [{ "click": "#new-order" }, { "wait": ".modal" }], "element": ".modal" },
+    { "name": "03_new_order", "session": "admin", "steps": [{ "click": "#new-order" }, { "wait": ".modal" }], "element": ".modal",
+      "highlight": [{ "selector": "#cust", "label": "1" }, { "selector": "#menu", "label": "2" }, { "selector": "#qty", "label": "3" }, { "selector": ".modal .primary", "label": "4" }] },
     { "name": "04_mobile", "session": "admin", "freshSession": true, "viewport": { "width": 390, "height": 760 } }
   ]
 }
