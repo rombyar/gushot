@@ -15,9 +15,10 @@ const shot = (...args) => {
 const pngWidth = (f) => fs.readFileSync(path.join(__dirname, 'output', f)).readUInt32BE(16);
 
 const cases = [
-  ['English keys, numbered highlight', () => {
+  ['English keys, numbered highlight, element padding', () => {
     const r = shot('config.test.json');
-    return r.status === 1 && r.out.includes('Done: 3 OK, 1 failed') && r.out.includes('unknown key "higlight"') || r.out;
+    return r.status === 1 && r.out.includes('Done: 3 OK, 1 failed') && r.out.includes('unknown key "higlight"')
+      && pngWidth('t02_modal.png') === 254 || r.out; // 234px modal + 2 x 10px padding
   }],
   ['Indonesian keys, scale 2', () => {
     const r = shot('config.test.id.json');
@@ -29,6 +30,13 @@ const cases = [
     fs.rmSync(f, { force: true });
     const r = shot('config.test.json', 't02', '--check');
     return r.status === 0 && r.out.includes('t02_modal (checked, not saved)') && !fs.existsSync(f) || r.out;
+  }],
+  ['change report: new, then unchanged', () => {
+    fs.rmSync(path.join(__dirname, 'output', 't03_mobile.png'), { force: true });
+    const a = shot('config.test.json', 't03');
+    const b = shot('config.test.json', 't03');
+    return a.out.includes('t03_mobile.png (new)') && a.out.includes('Changed: 0, new: 1.')
+      && b.out.includes('t03_mobile.png (unchanged)') && b.out.includes('Changed: 0, new: 0.') || a.out + b.out;
   }],
 ];
 let bad = 0;

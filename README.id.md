@@ -97,7 +97,7 @@ Yang paling sering dipakai:
 |---|---|
 | `highlight` | memberi kotak merah pada elemen yang dibahas di langkah panduan; `{ "selector": "#save", "label": "2" }` menambah nomor langkah |
 | `blur` | mem-blur elemen tambahan di shot ini (`alwaysBlur` berlaku untuk semua shot) |
-| `element` | memotret satu elemen saja, misalnya modal atau form |
+| `element` | memotret satu elemen saja, misalnya modal atau form; tambahkan `"padding": 16` supaya sebagian halaman di sekitarnya ikut terlihat |
 | `fullPage` | memotret seluruh halaman sampai bawah |
 | `viewport` | ukuran layar khusus shot ini, misalnya `{ "width": 390, "height": 844 }` untuk HP |
 
@@ -128,6 +128,7 @@ node <path>/shot.cjs panduan.json --check     # jalankan langkah, tanpa menyimpa
 ```
 
 - Setiap shot mencetak `OK <file>` atau `FAIL <nama> - <alasan>`. Shot yang gagal tidak menghentikan yang lain.
+- Setiap baris `OK` menyebut apakah gambarnya `new` (baru), `changed` (berubah), atau `unchanged` (sama) dibanding file sebelumnya, dan baris terakhir menghitungnya. Setelah tampilan aplikasi berubah, cukup perbarui gambar yang berubah di panduan.
 - Kunci yang salah ketik memunculkan baris `WARN unknown key`, tidak diabaikan diam-diam.
 - Kode keluar: `0` semua OK, `1` ada yang gagal, `2` dependensi belum dipasang.
 - `--check` menjalankan semua langkah tanpa menyimpan gambar. Pakai setelah tampilan berubah, atau di CI, untuk menemukan selector yang rusak lebih awal.

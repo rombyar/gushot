@@ -16,6 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const { execSync } = require('child_process');
+const crypto = require('crypto');
 let puppeteer;
 try {
   puppeteer = require('puppeteer-core');
@@ -41,6 +42,8 @@ const MSG = {
     unknownKey: (k) => `WARN unknown key "${k}" (typo?), ignored`,
     noShots: 'No matching shots.',
     ok: 'OK   ', fail: 'FAIL ', checked: (n) => `${n} (checked, not saved)`,
+    state: { new: 'new', changed: 'changed', same: 'unchanged' },
+    changes: (c, n) => `Changed: ${c}, new: ${n}.`,
     done: (ok, bad, out) => `\nDone: ${ok} OK, ${bad} failed. Output in ${out}`,
   },
   id: {
@@ -56,6 +59,8 @@ const MSG = {
     unknownKey: (k) => `PERINGATAN key "${k}" tidak dikenal (salah ketik?), diabaikan`,
     noShots: 'Tidak ada shot yang cocok.',
     ok: 'OK   ', fail: 'GAGAL', checked: (n) => `${n} (diperiksa, tidak disimpan)`,
+    state: { new: 'baru', changed: 'berubah', same: 'sama' },
+    changes: (c, n) => `Berubah: ${c}, baru: ${n}.`,
     done: (ok, bad, out) => `\nSelesai: ${ok} OK, ${bad} gagal. Hasil di ${out}`,
   },
 };
@@ -66,7 +71,7 @@ const ALIAS = {
   root: { skala: 'scale', keluar: 'out', blurSelalu: 'alwaysBlur', kekuatanBlur: 'blurStrength', warnaSorot: 'highlightColor',
     jeda: 'delay', tema: 'theme', sesi: 'sessions', bahasa: 'lang' },
   shot: { nama: 'name', sesi: 'session', langkah: 'steps', elemen: 'element', penuh: 'fullPage',
-    sembunyikan: 'hide', sorot: 'highlight', sesiBaru: 'freshSession', jeda: 'delay' },
+    sembunyikan: 'hide', jarak: 'padding', sorot: 'highlight', sesiBaru: 'freshSession', jeda: 'delay' },
   step: { buka: 'open', ketik: 'type', teks: 'text', klik: 'click', klikTeks: 'clickText', di: 'within',
     pilih: 'select', nilai: 'value', tekan: 'press', tunggu: 'wait', tungguTeks: 'waitText', batas: 'timeout',
     gulirKe: 'scrollTo', perintah: 'run' },
@@ -79,7 +84,7 @@ const alias = (o, map) => (o && typeof o === 'object' && !Array.isArray(o)
 // Keys starting with "_" or "$" are free for comments / $schema.
 const KEYS = {
   root: 'base scale out viewport theme alwaysBlur blurStrength highlightColor css delay headless chrome lang sessions shots',
-  shot: 'name session url steps element fullPage blur hide highlight viewport freshSession delay',
+  shot: 'name session url steps element padding fullPage blur hide highlight viewport freshSession delay',
   step: 'open type text click clickText within select value press wait waitText timeout scrollTo js run cwd otp',
   otp: 'file pattern into submit tries',
   highlight: 'selector label',
@@ -218,6 +223,9 @@ async function newSession(browser, name) {
   return page;
 }
 
+const outFile = (s) => path.join(OUT, s.name.endsWith('.png') ? s.name : `${s.name}.png`);
+const hashOf = (f) => (fs.existsSync(f) ? crypto.createHash('sha1').update(fs.readFileSync(f)).digest('hex') : null);
+
 async function capture(page, s) {
   await settle(page, 600);
   await sleep(s.delay ?? cfg.delay ?? 500);
@@ -244,11 +252,22 @@ async function capture(page, s) {
     })), s.highlight, cfg.highlightColor || '#e11d48');
   }
 
-  const file = path.join(OUT, s.name.endsWith('.png') ? s.name : `${s.name}.png`);
+  const file = outFile(s);
   if (s.element) {
     const el = await page.$(s.element);
     if (!el) throw new Error(T.noElement(s.element));
-    if (!CHECK) await el.screenshot({ path: file });
+    if (CHECK) { /* element exists, nothing to save */ } else if (s.padding) {
+      // Element plus some surrounding page, clamped to the page edges.
+      await el.scrollIntoView();
+      const b = await el.boundingBox();
+      const { sx, sy } = await page.evaluate(() => ({ sx: scrollX, sy: scrollY }));
+      const p = s.padding;
+      const x = Math.max(0, b.x + sx - p), y = Math.max(0, b.y + sy - p);
+      await page.screenshot({ path: file, captureBeyondViewport: true,
+        clip: { x, y, width: b.x + sx + b.width + p - x, height: b.y + sy + b.height + p - y } });
+    } else {
+      await el.screenshot({ path: file });
+    }
   } else if (!CHECK) {
     await page.screenshot({ path: file, fullPage: !!s.fullPage });
   }
@@ -279,6 +298,7 @@ async function capture(page, s) {
   });
   const pages = {}; // one logged-in tab per session, reused across shots
   const failed = [];
+  const counts = { new: 0, changed: 0 }; // tells the guide writer which images to re-insert
 
   for (const s of shots) {
     const key = s.session || '_guest';
@@ -289,8 +309,14 @@ async function capture(page, s) {
       if (s.viewport) await page.setViewport({ ...VIEWPORT, ...s.viewport });
       if (s.url) await page.goto(absUrl(s.url), { waitUntil: 'networkidle2' });
       for (const l of s.steps) await run(page, l);
+      const before = hashOf(outFile(s));
       const file = await capture(page, s);
-      console.log(T.ok, CHECK ? T.checked(s.name) : path.relative(process.cwd(), file));
+      if (CHECK) console.log(T.ok, T.checked(s.name));
+      else {
+        const state = before === null ? 'new' : before === hashOf(file) ? 'same' : 'changed';
+        if (state !== 'same') counts[state]++;
+        console.log(T.ok, path.relative(process.cwd(), file), `(${T.state[state]})`);
+      }
       if (s.viewport) await page.setViewport(VIEWPORT);
     } catch (e) {
       failed.push(s.name);
@@ -303,5 +329,6 @@ async function capture(page, s) {
 
   await browser.close();
   console.log(T.done(shots.length - failed.length, failed.length, OUT));
+  if (!CHECK) console.log(T.changes(counts.changed, counts.new));
   process.exit(failed.length ? 1 : 0);
 })().catch((e) => { console.error(e.message); process.exit(1); });

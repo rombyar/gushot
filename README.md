@@ -97,7 +97,7 @@ What you will use most:
 |---|---|
 | `highlight` | draws a red box around the elements a guide step talks about; `{ "selector": "#save", "label": "2" }` adds a numbered badge |
 | `blur` | blurs extra elements in this shot (`alwaysBlur` does it for every shot) |
-| `element` | captures only one element, such as a modal or a form |
+| `element` | captures only one element, such as a modal or a form; add `"padding": 16` to keep some of the page around it |
 | `fullPage` | captures the whole scrolling page |
 | `viewport` | uses another size for this shot, e.g. `{ "width": 390, "height": 844 }` for a phone |
 
@@ -126,6 +126,7 @@ node <path-to>/shot.cjs my-guide.json --check     # run the steps, save nothing
 ```
 
 - Each shot prints `OK <file>` or `FAIL <name> - <reason>`. A failed shot does not stop the rest.
+- Each `OK` line says whether the image is `new`, `changed`, or `unchanged` compared with the file it replaced, and the last line counts them. After a UI change, update only the changed images in your guide.
 - A misspelled key prints a `WARN unknown key` line instead of being silently ignored.
 - Exit code: `0` all shots OK, `1` at least one failed, `2` the dependency is not installed.
 - `--check` runs every step but saves no images. Use it after a UI change, or in CI, to find broken selectors early.

@@ -33,6 +33,7 @@ Indonesian keys are accepted as aliases: [aliases-id.md](aliases-id.md).
 | `url` | page to open |
 | `steps` | actions before capturing (click a button, open a modal, fill a form) |
 | `element` | capture only this element (e.g. a modal) |
+| `padding` | with `element`: px of surrounding page to include on each side, e.g. `16` |
 | `fullPage` | `true` = whole page, not just the viewport |
 | `blur` | extra selectors to blur |
 | `hide` | selectors to hide |
@@ -64,7 +65,7 @@ OTP: the code is capture group 1 of the last `pattern` match written to `file` a
 
 ## Output and exit codes
 
-- One line per shot: `OK <file>` or `FAIL <name> - <reason>` (`GAGAL` with `lang: id`), then a summary.
+- One line per shot: `OK <file> (new|changed|unchanged)` or `FAIL <name> - <reason>` (`GAGAL` with `lang: id`), then a summary and `Changed: X, new: Y.` The state compares the file with the one it replaces, so after a rerun you know which images to update in the guide.
 - `WARN unknown key "x"` (`PERINGATAN` with `lang: id`): a config key the tool does not know, most likely a typo; it is ignored. Keys starting with `_` or `$` are allowed for comments.
 - `--check` anywhere on the command line runs every step and checks that `element` exists, but saves no images. Use it after UI changes, or in CI, to find broken selectors.
 - Exit 0 = all OK, 1 = at least one shot failed (others still run), 2 = dependency missing.

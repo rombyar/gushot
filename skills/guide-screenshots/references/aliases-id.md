@@ -19,6 +19,7 @@ Kunci utama berbahasa Inggris. Kunci bahasa Indonesia di bawah tetap diterima da
 | `langkah` | `steps` | aksi sebelum memotret |
 | `elemen` | `element` | potret satu elemen saja |
 | `penuh` | `fullPage` | seluruh halaman |
+| `jarak` | `padding` | ruang di sekitar `element` (px) |
 | `sembunyikan` | `hide` | selector yang disembunyikan |
 | `sorot` | `highlight` | beri kotak merah |
 | `sesiBaru` | `freshSession` | login ulang dulu |

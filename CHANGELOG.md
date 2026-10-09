@@ -5,6 +5,8 @@
 - Numbered highlights: `"highlight": [{ "selector": "#save", "label": "1" }]` puts a numbered badge on the top-right corner of the red box, to match "click 1, then 2" in the guide. Plain selectors still work.
 - `scale` at the root sets the pixel density for every shot; `2` gives sharp images for PDF, print, and HiDPI screens. Indonesian alias: `skala`.
 - `--check` runs every step without saving images, to find selectors broken by UI changes (works in CI).
+- `padding` on a shot with `element` keeps some of the page around the element. Indonesian alias: `jarak`.
+- Each `OK` line says `new`, `changed`, or `unchanged` compared with the previous file, plus a `Changed: X, new: Y.` summary, so you know which images to update in the guide.
 - Demo uses numbered steps in `01_login` and `03_new_order`; video and GIF re-recorded.
 
 ## 1.0.0 (2026-10-09)
