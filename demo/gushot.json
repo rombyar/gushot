@@ -1,0 +1,22 @@
+{
+  "out": "screenshots",
+  "viewport": { "width": 1100, "height": 640 },
+  "alwaysBlur": [".customer", ".phone", ".contact"],
+  "sessions": {
+    "admin": [
+      { "open": "./app.html" },
+      { "type": "#email", "text": "rina@kedai.example" },
+      { "type": "#password", "text": "{{DEMO_PASSWORD}}" },
+      { "click": "#login button" },
+      { "run": "node -e \"require('fs').appendFileSync('mail.log','Your Kedai code: 482913\\n')\"" },
+      { "otp": { "file": "mail.log", "pattern": "Kedai code: (\\d{6})", "into": "#code", "submit": { "clickText": "Verify" } } },
+      { "wait": "#app" }
+    ]
+  },
+  "shots": [
+    { "name": "01_login", "url": "./app.html", "steps": [{ "type": "#email", "text": "rina@kedai.example" }], "highlight": ["#login button"] },
+    { "name": "02_dashboard", "session": "admin", "highlight": ["#new-order"] },
+    { "name": "03_new_order", "session": "admin", "steps": [{ "click": "#new-order" }, { "wait": ".modal" }], "element": ".modal" },
+    { "name": "04_mobile", "session": "admin", "freshSession": true, "viewport": { "width": 390, "height": 760 } }
+  ]
+}

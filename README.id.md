@@ -26,6 +26,19 @@ Butuh Node 18+ dan Chrome atau Edge (dicari otomatis, atau isi `"chrome"` / env 
 
 Rahasia jangan ditulis di JSON: `{{NAMA_ENV}}` diisi dari environment (`APP_PASSWORD=rahasia node ...`, atau `$env:APP_PASSWORD='rahasia'` di PowerShell).
 
+## Demo
+
+Folder [`demo/`](demo/) berisi aplikasi pesanan sederhana dalam satu file HTML beserta config untuk memotretnya. Nama pelanggan, nomor HP, dan nama pengguna yang login di-blur, dan tombol yang dibahas di panduan diberi kotak merah:
+
+![Dasbor yang dipotret GuShot](demo/screenshots/02_dashboard.png)
+
+Config-nya login, membaca OTP dari file log, lalu mengambil empat screenshot (login, dasbor, modal New order, dan tampilan ukuran HP). Coba sendiri:
+
+```bash
+cd demo
+DEMO_PASSWORD=demo node ../skills/guide-screenshots/scripts/shot.cjs gushot.json
+```
+
 ## Bahasa
 
 - Kunci config utama berbahasa Inggris. Kunci bahasa Indonesia (`buka`, `ketik`, `klik`, `sorot`, ...) tetap diterima: [tabel alias](skills/guide-screenshots/references/aliases-id.md).

@@ -9,3 +9,4 @@ First public release of GuShot (Guide User Shot).
 - English config keys with Indonesian aliases; English and Indonesian terminal messages.
 - Warning for unknown config keys (likely typos).
 - Self-test (`node test/run.cjs`) and CI.
+- `demo/`: sample app, config, and the screenshots it produces.

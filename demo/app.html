@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kedai Orders</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, "Segoe UI", Roboto, sans-serif; background: #f4f5f7; color: #1f2933; }
+  button { font: inherit; cursor: pointer; border: 0; border-radius: 6px; padding: 8px 14px; }
+  .primary { background: #2563eb; color: #fff; }
+  .ghost { background: #e5e7eb; color: #1f2933; }
+  input, select { font: inherit; width: 100%; padding: 8px 10px; border: 1px solid #cbd2d9; border-radius: 6px; }
+  label { display: block; margin: 12px 0 4px; font-size: 13px; color: #52606d; }
+  [hidden] { display: none !important; }
+
+  .card { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .auth { width: 360px; margin: 120px auto; padding: 28px; }
+  .auth h1 { margin: 0 0 4px; font-size: 22px; }
+  .auth p { margin: 0 0 8px; color: #52606d; font-size: 14px; }
+  .auth button { width: 100%; margin-top: 18px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: #fff; border-bottom: 1px solid #e4e7eb; }
+  header b { font-size: 17px; }
+  .user { display: flex; gap: 10px; align-items: center; font-size: 14px; color: #52606d; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: #c7d2fe; display: grid; place-items: center; font-weight: 600; color: #3730a3; }
+  main { padding: 24px; max-width: 1040px; margin: 0 auto; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+  .stat { padding: 16px; }
+  .stat small { color: #5f6b7a; }
+  .stat div { font-size: 24px; font-weight: 600; }
+  .bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .bar h2 { margin: 0; font-size: 18px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #edf0f3; font-size: 14px; }
+  th { color: #5f6b7a; font-weight: 500; }
+  .badge { padding: 2px 8px; border-radius: 99px; font-size: 12px; }
+  .paid { background: #dcfce7; color: #166534; }
+  .pending { background: #fef3c7; color: #92400e; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(15,23,42,.45); display: grid; place-items: center; }
+  .modal { width: 420px; padding: 24px; }
+  .modal h3 { margin: 0; }
+  .modal .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+  @media (max-width: 600px) {
+    .stats { grid-template-columns: 1fr; }
+    .hide-sm { display: none; }
+    main { padding: 16px; }
+  }
+</style>
+
+<!-- Login -->
+<form id="login" class="card auth">
+  <h1>Kedai Orders</h1>
+  <p>Sign in to manage today's orders.</p>
+  <label for="email">Email</label>
+  <input id="email" type="email" autocomplete="username">
+  <label for="password">Password</label>
+  <input id="password" type="password" autocomplete="current-password">
+  <button class="primary" type="submit">Sign in</button>
+</form>
+
+<!-- Two-factor -->
+<form id="otp" class="card auth" hidden>
+  <h1>Check your email</h1>
+  <p>We sent a 6-digit code to <span class="contact">rina@kedai.example</span>.</p>
+  <label for="code">Verification code</label>
+  <input id="code" inputmode="numeric" autocomplete="one-time-code">
+  <button class="primary" type="submit">Verify</button>
+</form>
+
+<!-- App -->
+<div id="app" hidden>
+  <header>
+    <b>Kedai Orders</b>
+    <div class="user"><span class="contact">Rina Hartono</span><div class="avatar">RH</div></div>
+  </header>
+  <main>
+    <div class="stats">
+      <div class="card stat"><small>Orders today</small><div>48</div></div>
+      <div class="card stat"><small>Revenue</small><div>Rp 6.240.000</div></div>
+      <div class="card stat"><small>Pending payment</small><div>5</div></div>
+    </div>
+    <div class="bar">
+      <h2>Recent orders</h2>
+      <button id="new-order" class="primary">+ New order</button>
+    </div>
+    <div class="card">
+      <table id="orders">
+        <tr><th>Order</th><th>Customer</th><th class="hide-sm">Phone</th><th>Total</th><th>Status</th></tr>
+        <tr><td class="order-id">KD-24081</td><td class="customer">Budi Santoso</td><td class="hide-sm phone">0812-3456-7781</td><td>Rp 185.000</td><td><span class="badge paid">Paid</span></td></tr>
+        <tr><td class="order-id">KD-24080</td><td class="customer">Siti Aminah</td><td class="hide-sm phone">0813-9921-0045</td><td>Rp 92.500</td><td><span class="badge pending">Pending</span></td></tr>
+        <tr><td class="order-id">KD-24079</td><td class="customer">Andi Wijaya</td><td class="hide-sm phone">0857-1120-3398</td><td>Rp 240.000</td><td><span class="badge paid">Paid</span></td></tr>
+        <tr><td class="order-id">KD-24078</td><td class="customer">Dewi Lestari</td><td class="hide-sm phone">0821-6654-1209</td><td>Rp 67.000</td><td><span class="badge paid">Paid</span></td></tr>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- New order modal -->
+<div id="modal" class="overlay" hidden>
+  <form class="card modal">
+    <h3>New order</h3>
+    <label for="cust">Customer</label>
+    <input id="cust" placeholder="Name or phone">
+    <label for="menu">Item</label>
+    <select id="menu"><option>Nasi goreng spesial</option><option>Mie ayam</option><option>Es teh manis</option></select>
+    <label for="qty">Quantity</label>
+    <input id="qty" type="number" value="1" min="1">
+    <div class="actions">
+      <button type="button" class="ghost" onclick="modal.hidden = true">Cancel</button>
+      <button type="submit" class="primary">Save order</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  $('login').onsubmit = (e) => { e.preventDefault(); $('login').hidden = true; $('otp').hidden = false; };
+  $('otp').onsubmit = (e) => { e.preventDefault(); $('otp').hidden = true; $('app').hidden = false; };
+  $('new-order').onclick = () => { $('modal').hidden = false; };
+</script>
+</html>

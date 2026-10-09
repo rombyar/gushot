@@ -24,6 +24,19 @@ It is packaged as an [Agent Skill](https://agentskills.io) in [`skills/guide-scr
 
 Requires Node 18+ and Chrome or Edge (auto-detected, or set `"chrome"` / the `CHROME_PATH` env).
 
+## Demo
+
+[`demo/`](demo/) has a small orders app in one HTML file and the config that captures it. Customer names, phone numbers, and the signed-in user are blurred, and the button the guide talks about gets a red box:
+
+![Dashboard captured by GuShot](demo/screenshots/02_dashboard.png)
+
+The config logs in, reads the OTP from a log file, and takes four shots (login, dashboard, the New order modal, and a phone-sized view). Run it yourself:
+
+```bash
+cd demo
+DEMO_PASSWORD=demo node ../skills/guide-screenshots/scripts/shot.cjs gushot.json
+```
+
 ## Structure
 
 ```
@@ -33,6 +46,7 @@ skills/guide-screenshots/
   assets/config.example.json  web app with login + OTP
   references/REFERENCE.md     every config key and step
   references/aliases-id.md    Indonesian key aliases
+demo/                         sample app + config + its screenshots
 test/                         self-test, no server needed
 .claude-plugin/               Claude Code plugin & marketplace manifests
 AGENTS.md                     pointer for coding agents working on this repo
