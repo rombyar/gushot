@@ -22,7 +22,7 @@ GuShot (Guide User Shot) membuat screenshot untuk buku panduan aplikasi web. Hal
 ## Kebutuhan
 
 - Node.js 18 atau lebih baru
-- Google Chrome atau Microsoft Edge (dicari otomatis; kalau tidak ketemu, isi `CHROME_PATH`)
+- Google Chrome atau Microsoft Edge. Dicari otomatis di folder instalasi biasa di drive mana pun, termasuk instalasi per-user, atau di mana saja di `PATH`; kalau tidak ketemu, isi `CHROME_PATH`
 - Aplikasi web yang mau dipotret, berjalan di alamat yang bisa dibuka browser (biasanya server lokal dengan data contoh)
 
 Jalan di Windows, macOS, dan Linux.

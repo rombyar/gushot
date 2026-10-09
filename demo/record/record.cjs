@@ -10,12 +10,16 @@ const { execFileSync } = require('child_process');
 const REPO = path.resolve(__dirname, '../..');
 const puppeteer = require(path.join(REPO, 'skills/guide-screenshots/scripts/node_modules/puppeteer-core'));
 const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'gushot-video-')); // intermediate .webm scenes
-// ponytail: only the common Chrome paths; set CHROME_PATH for anything else.
+// Same browser search as findChrome() in shot.cjs (kept short here; CHROME_PATH overrides).
 const CHROME = process.env.CHROME_PATH || [
-  'C:/Program Files/Google/Chrome/Application/chrome.exe',
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-  '/usr/bin/google-chrome',
+  ...[process.env.PROGRAMFILES, process.env['PROGRAMFILES(X86)'], process.env.LOCALAPPDATA].filter(Boolean)
+    .flatMap((d) => [path.join(d, 'Google/Chrome/Application/chrome.exe'), path.join(d, 'Microsoft/Edge/Application/msedge.exe')]),
+  ...['/Applications', path.join(os.homedir(), 'Applications')]
+    .map((d) => path.join(d, 'Google Chrome.app/Contents/MacOS/Google Chrome')),
+  ...(process.env.PATH || '').split(path.delimiter).filter(Boolean).flatMap((d) => ['google-chrome', 'chromium', 'chrome', 'msedge']
+    .map((n) => path.join(d, n + (process.platform === 'win32' ? '.exe' : '')))),
 ].find((p) => fs.existsSync(p));
+if (!CHROME) throw new Error('Chrome/Edge not found, set CHROME_PATH');
 const W = 1100, H = 640;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const url = (p) => pathToFileURL(p).href;

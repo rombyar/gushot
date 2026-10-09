@@ -22,7 +22,7 @@ GuShot (Guide User Shot) takes the screenshots for a web app's user guide. You d
 ## Requirements
 
 - Node.js 18 or newer
-- Google Chrome or Microsoft Edge (found automatically; otherwise set `CHROME_PATH`)
+- Google Chrome or Microsoft Edge. It is found in the usual install folders on any drive, per-user installs included, or anywhere on `PATH`; otherwise set `CHROME_PATH`
 - The web app you want to capture, running somewhere the browser can reach (usually a local dev server with sample data)
 
 Works on Windows, macOS, and Linux.

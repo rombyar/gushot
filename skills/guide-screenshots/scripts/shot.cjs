@@ -13,6 +13,7 @@
  * SHOT_LANG env, "en" (default) or "id".
  */
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const { execSync } = require('child_process');
@@ -137,17 +138,25 @@ const absUrl = (u) => (/^[a-z]+:/i.test(u) ? u
   : BASE + u);
 
 function findChrome() {
-  if (cfg.chrome || process.env.CHROME_PATH) return cfg.chrome || process.env.CHROME_PATH;
-  const candidates = [
-    'C:/Program Files/Google/Chrome/Application/chrome.exe',
-    'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
-    'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
-    'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
-    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/microsoft-edge',
-  ];
-  const found = candidates.find((p) => fs.existsSync(p));
+  if (cfg.chrome) return path.resolve(configDir, cfg.chrome);
+  if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
+  const env = process.env;
+  // Windows: install folders come from the environment (any drive, per-user installs too).
+  const win = [env.PROGRAMFILES, env['PROGRAMFILES(X86)'], env.LOCALAPPDATA].filter(Boolean).flatMap((d) => [
+    path.join(d, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    path.join(d, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+  ]);
+  // macOS: system-wide and per-user Applications folders.
+  const mac = ['/Applications', path.join(os.homedir(), 'Applications')].flatMap((d) => [
+    path.join(d, 'Google Chrome.app', 'Contents', 'MacOS', 'Google Chrome'),
+    path.join(d, 'Microsoft Edge.app', 'Contents', 'MacOS', 'Microsoft Edge'),
+    path.join(d, 'Chromium.app', 'Contents', 'MacOS', 'Chromium'),
+  ]);
+  // Anywhere on PATH (Linux packages, snap, /opt symlinks, portable installs).
+  const names = ['google-chrome', 'google-chrome-stable', 'chromium', 'chromium-browser', 'microsoft-edge', 'chrome', 'msedge'];
+  const ext = process.platform === 'win32' ? '.exe' : '';
+  const onPath = (env.PATH || '').split(path.delimiter).filter(Boolean).flatMap((d) => names.map((n) => path.join(d, n + ext)));
+  const found = [...win, ...mac, ...onPath].find((p) => fs.existsSync(p));
   if (!found) throw new Error(T.noChrome);
   return found;
 }
