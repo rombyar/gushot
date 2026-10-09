@@ -2,4 +2,7 @@ node_modules/
 output/
 hasil/
 *.log
-mail.log
+
+# local editor/agent settings
+.claude/settings.local.json
+.impeccable/
