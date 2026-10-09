@@ -1,0 +1,11 @@
+{
+  "name": "gushot",
+  "owner": { "name": "Roma" },
+  "plugins": [
+    {
+      "name": "gushot",
+      "source": "./",
+      "description": "Screenshot user guides automatically from one JSON config"
+    }
+  ]
+}

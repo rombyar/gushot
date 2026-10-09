@@ -1,0 +1,22 @@
+{
+  "bahasa": "id",
+  "out": "output",
+  "blurSelalu": [".sensitive"],
+  "sesi": {
+    "user": [
+      { "buka": "./page.html" },
+      { "ketik": "input[type=email]", "teks": "user@example.com" },
+      { "ketik": "input[type=password]", "teks": "{{TEST_PASSWORD}}" },
+      { "klik": "#login button" },
+      { "perintah": "node -e \"require('fs').appendFileSync('otp.log','Code for user: 123456\\n')\"" },
+      { "otp": { "file": "otp.log", "pola": "Code for user: (\\d{6})", "ke": "input[autocomplete=one-time-code]", "kirim": { "klikTeks": "Verify" } } },
+      { "tunggu": "#app" }
+    ]
+  },
+  "shots": [
+    { "nama": "u01_setelah_login", "sesi": "user", "sorot": [".open"] },
+    { "nama": "u02_modal", "sesi": "user", "langkah": [{ "klikTeks": "Add" }, { "tunggu": ".modal" }], "elemen": ".modal" },
+    { "nama": "u03_hp", "sesi": "user", "viewport": { "width": 390, "height": 600 } },
+    { "nama": "u04_sengaja_gagal", "sesi": "user", "elemen": ".tidak-ada", "sorrot": [".typo-sengaja"] }
+  ]
+}

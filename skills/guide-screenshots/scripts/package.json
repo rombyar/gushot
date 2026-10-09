@@ -1,0 +1,16 @@
+{
+  "name": "gushot",
+  "version": "1.0.0",
+  "license": "MIT",
+  "homepage": "https://github.com/rombyar/gushot",
+  "repository": "github:rombyar/gushot",
+  "engines": { "node": ">=18" },
+  "description": "Screenshot user guides automatically from one JSON config",
+  "bin": { "gushot": "shot.cjs" },
+  "scripts": {
+    "gushot": "node shot.cjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "^24.0.0"
+  }
+}

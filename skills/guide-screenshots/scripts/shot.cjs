@@ -1,0 +1,287 @@
+#!/usr/bin/env node
+/**
+ * GuShot (Guide User Shot): capture web app user-guide screenshots from a single JSON config.
+ *
+ *   node shot.cjs <config.json> [filter...]   # filter = only shots whose name contains that text
+ *
+ * Config format: see ../assets/config.example.json and ../references/REFERENCE.md.
+ * Config keys are English; the Indonesian keys from v1 are accepted as aliases.
+ * {{NAME}} in the config is replaced from the environment (e.g. passwords), so
+ * secrets never live in the file. Output language: "lang" in config or
+ * SHOT_LANG env, "en" (default) or "id".
+ */
+const fs = require('fs');
+const path = require('path');
+const { pathToFileURL } = require('url');
+const { execSync } = require('child_process');
+let puppeteer;
+try {
+  puppeteer = require('puppeteer-core');
+} catch {
+  console.error(`Dependency missing. Run once:\n  npm install --omit=dev --prefix "${__dirname}"`);
+  process.exit(2);
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// ---------- messages (en primary, id secondary) ----------
+const MSG = {
+  en: {
+    usage: 'Usage: node shot.cjs <config.json> [filter...]',
+    envMissing: (k) => `Environment variable ${k} is not set`,
+    noChrome: 'Chrome/Edge not found, set "chrome" in the config or the CHROME_PATH env',
+    textNotFound: (t) => `text "${t}" not found`,
+    unknownStep: (s) => `unknown step: ${s}`,
+    cmdFailed: (c) => `  (command failed, continuing): ${c}`,
+    otpNotFound: (f) => `OTP not found in ${f}`,
+    noSession: (n) => `session "${n}" is not defined in the config`,
+    noElement: (s) => `element ${s} not found`,
+    unknownKey: (k) => `WARN unknown key "${k}" (typo?), ignored`,
+    noShots: 'No matching shots.',
+    ok: 'OK   ', fail: 'FAIL ',
+    done: (ok, bad, out) => `\nDone: ${ok} OK, ${bad} failed. Output in ${out}`,
+  },
+  id: {
+    usage: 'Pemakaian: node shot.cjs <config.json> [saring...]',
+    envMissing: (k) => `Environment ${k} belum diisi`,
+    noChrome: 'Chrome/Edge tidak ditemukan, isi "chrome" di konfigurasi atau env CHROME_PATH',
+    textNotFound: (t) => `teks "${t}" tidak ditemukan`,
+    unknownStep: (s) => `langkah tidak dikenal: ${s}`,
+    cmdFailed: (c) => `  (perintah gagal, lanjut): ${c}`,
+    otpNotFound: (f) => `OTP tidak ditemukan di ${f}`,
+    noSession: (n) => `sesi "${n}" tidak ada di konfigurasi`,
+    noElement: (s) => `elemen ${s} tidak ada`,
+    unknownKey: (k) => `PERINGATAN key "${k}" tidak dikenal (salah ketik?), diabaikan`,
+    noShots: 'Tidak ada shot yang cocok.',
+    ok: 'OK   ', fail: 'GAGAL',
+    done: (ok, bad, out) => `\nSelesai: ${ok} OK, ${bad} gagal. Hasil di ${out}`,
+  },
+};
+let T = MSG[(process.env.SHOT_LANG || 'en').slice(0, 2)] || MSG.en;
+
+// ---------- Indonesian key aliases ----------
+const ALIAS = {
+  root: { keluar: 'out', blurSelalu: 'alwaysBlur', kekuatanBlur: 'blurStrength', warnaSorot: 'highlightColor',
+    jeda: 'delay', tema: 'theme', sesi: 'sessions', bahasa: 'lang' },
+  shot: { nama: 'name', sesi: 'session', langkah: 'steps', elemen: 'element', penuh: 'fullPage',
+    sembunyikan: 'hide', sorot: 'highlight', sesiBaru: 'freshSession', jeda: 'delay' },
+  step: { buka: 'open', ketik: 'type', teks: 'text', klik: 'click', klikTeks: 'clickText', di: 'within',
+    pilih: 'select', nilai: 'value', tekan: 'press', tunggu: 'wait', tungguTeks: 'waitText', batas: 'timeout',
+    gulirKe: 'scrollTo', perintah: 'run' },
+  otp: { pola: 'pattern', ke: 'into', kirim: 'submit', coba: 'tries' },
+};
+const alias = (o, map) => (o && typeof o === 'object' && !Array.isArray(o)
+  ? Object.fromEntries(Object.entries(o).map(([k, v]) => [map[k] || k, v])) : o);
+
+// Known keys (after aliasing). Anything else is most likely a typo: warn once, don't fail.
+// Keys starting with "_" or "$" are free for comments / $schema.
+const KEYS = {
+  root: 'base out viewport theme alwaysBlur blurStrength highlightColor css delay headless chrome lang sessions shots',
+  shot: 'name session url steps element fullPage blur hide highlight viewport freshSession delay',
+  step: 'open type text click clickText within select value press wait waitText timeout scrollTo js run cwd otp',
+  otp: 'file pattern into submit tries',
+};
+const warned = new Set();
+const check = (o, kind) => {
+  for (const k of Object.keys(o || {})) {
+    if (/^[_$]/.test(k) || KEYS[kind].split(' ').includes(k) || warned.has(k)) continue;
+    warned.add(k);
+    console.warn(T.unknownKey(k));
+  }
+  return o;
+};
+const step = (s) => {
+  const r = check(alias(s, ALIAS.step), 'step');
+  if (r.otp) r.otp = check(alias(r.otp, ALIAS.otp), 'otp');
+  if (r.otp?.submit && typeof r.otp.submit === 'object') r.otp.submit = step(r.otp.submit);
+  return r;
+};
+
+// ---------- config ----------
+const [configFile, ...filters] = process.argv.slice(2);
+if (!configFile) { console.error(T.usage); process.exit(1); }
+const configDir = path.dirname(path.resolve(configFile));
+const raw = fs.readFileSync(configFile, 'utf8').replace(/\{\{(\w+)\}\}/g, (_, k) => {
+  if (process.env[k] === undefined) throw new Error(T.envMissing(k));
+  return JSON.stringify(process.env[k]).slice(1, -1);
+});
+const cfg = alias(JSON.parse(raw), ALIAS.root);
+if (!process.env.SHOT_LANG && cfg.lang) T = MSG[cfg.lang] || MSG.en;
+check(cfg, 'root');
+cfg.shots = (cfg.shots || []).map((s) => {
+  const r = check(alias(s, ALIAS.shot), 'shot');
+  r.steps = (r.steps || []).map(step);
+  return r;
+});
+for (const n of Object.keys(cfg.sessions || {})) cfg.sessions[n] = cfg.sessions[n].map(step);
+
+const BASE = (cfg.base || '').replace(/\/$/, '');
+const OUT = path.resolve(configDir, cfg.out || 'output');
+const VIEWPORT = { width: 1280, height: 900, deviceScaleFactor: 1, ...(cfg.viewport || {}) };
+// "./page.html" = local file relative to the config folder.
+const absUrl = (u) => (/^[a-z]+:/i.test(u) ? u
+  : u.startsWith('./') || u.startsWith('../') ? pathToFileURL(path.resolve(configDir, u)).href
+  : BASE + u);
+
+function findChrome() {
+  if (cfg.chrome || process.env.CHROME_PATH) return cfg.chrome || process.env.CHROME_PATH;
+  const candidates = [
+    'C:/Program Files/Google/Chrome/Application/chrome.exe',
+    'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+    'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+    'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/microsoft-edge',
+  ];
+  const found = candidates.find((p) => fs.existsSync(p));
+  if (!found) throw new Error(T.noChrome);
+  return found;
+}
+
+// ---------- browser actions ----------
+// Find an element by its visible text (buttons, links, labels); shortest match wins.
+async function byText(page, text, selector = 'button, a, [role=button], label, summary, li, span') {
+  const h = await page.evaluateHandle((s, t) => [...document.querySelectorAll(s)]
+    .filter((e) => e.offsetParent !== null && e.innerText?.trim().includes(t))
+    .sort((a, b) => a.innerText.length - b.innerText.length)[0] || null, selector, text);
+  const el = h.asElement();
+  if (!el) throw new Error(T.textNotFound(text));
+  return el;
+}
+
+const settle = (page, ms = 400) => page.waitForNetworkIdle({ idleTime: ms, timeout: 15000 }).catch(() => {});
+
+// One step = one object with one action key. See README for the list.
+async function run(page, l) {
+  if (l.open) { await page.goto(absUrl(l.open), { waitUntil: 'networkidle2' }); return; }
+  if (l.type) { await page.waitForSelector(l.type, { visible: true }); await page.click(l.type, { clickCount: 3 }); await page.type(l.type, String(l.text ?? '')); return; }
+  if (l.click) { await page.waitForSelector(l.click, { visible: true }); await page.click(l.click); await settle(page); return; }
+  if (l.clickText) { await (await byText(page, l.clickText, l.within)).click(); await settle(page); return; }
+  if (l.select) { await page.select(l.select, l.value); await settle(page); return; }
+  if (l.press) { await page.keyboard.press(l.press); await settle(page); return; }
+  if (l.wait !== undefined) {
+    if (typeof l.wait === 'number') await sleep(l.wait);
+    else await page.waitForSelector(l.wait, { visible: true, timeout: l.timeout ?? 15000 });
+    return;
+  }
+  if (l.waitText) { await page.waitForFunction((t) => document.body.innerText.includes(t), { timeout: l.timeout ?? 15000 }, l.waitText); return; }
+  if (l.scrollTo) { await page.$eval(l.scrollTo, (e) => e.scrollIntoView({ block: 'start' })); await sleep(300); return; }
+  if (l.js) { await page.evaluate(l.js); await settle(page); return; }
+  if (l.run) { try { execSync(l.run, { cwd: path.resolve(configDir, l.cwd || '.'), stdio: 'ignore' }); } catch { console.log(T.cmdFailed(l.run)); } return; }
+  if (l.otp) { await fillOtp(page, l.otp); return; }
+  throw new Error(T.unknownStep(JSON.stringify(l)));
+}
+
+// OTP is read from a file (e.g. the app log): last regex match written AFTER
+// the previous step, typed into the input.
+async function fillOtp(page, o) {
+  const file = path.resolve(configDir, o.file);
+  const re = new RegExp(o.pattern, 'g');
+  const from = page.__otpFrom ?? 0;
+  let code = null;
+  for (let i = 0; i < (o.tries ?? 60) && !code; i++) {
+    await sleep(250);
+    const text = fs.existsSync(file) ? fs.readFileSync(file, 'utf8').slice(from) : '';
+    const all = [...text.matchAll(re)];
+    code = all.length ? all[all.length - 1][1] : null;
+  }
+  if (!code) throw new Error(T.otpNotFound(o.file));
+  await page.waitForSelector(o.into, { visible: true });
+  await page.click(o.into);
+  await page.keyboard.type(code, { delay: 50 });
+  if (o.submit) await run(page, typeof o.submit === 'string' ? { click: o.submit } : o.submit);
+}
+
+async function newSession(browser, name) {
+  const page = await (await browser.createBrowserContext()).newPage();
+  if (cfg.theme) await page.emulateMediaFeatures([{ name: 'prefers-color-scheme', value: cfg.theme }]);
+  const steps = name ? cfg.sessions?.[name] : null;
+  if (name && !steps) throw new Error(T.noSession(name));
+  const otpFile = (steps || []).find((x) => x.otp)?.otp.file;
+  for (const l of steps || []) {
+    // Mark the OTP file size before each trigger step so old codes are ignored.
+    if (otpFile && !l.otp) {
+      const f = path.resolve(configDir, otpFile);
+      page.__otpFrom = fs.existsSync(f) ? fs.statSync(f).size : 0;
+    }
+    await run(page, l);
+  }
+  return page;
+}
+
+async function capture(page, s) {
+  await settle(page, 600);
+  await sleep(s.delay ?? cfg.delay ?? 500);
+  const blur = [...(cfg.alwaysBlur || []), ...(s.blur || [])];
+  const css = [];
+  if (blur.length) css.push(`${blur.join(',')}{filter:blur(${cfg.blurStrength ?? 6}px)!important}`);
+  if (s.hide?.length) css.push(`${s.hide.join(',')}{visibility:hidden!important}`);
+  if (cfg.css) css.push(cfg.css);
+  const tag = css.length ? await page.addStyleTag({ content: css.join('\n') }) : null;
+
+  // Highlight (red box) the element a guide step refers to.
+  if (s.highlight?.length) {
+    await page.evaluate((sels, color) => sels.forEach((sel) => document.querySelectorAll(sel).forEach((e) => {
+      e.dataset.shotOutline = e.style.outline; e.style.outline = `3px solid ${color}`; e.style.outlineOffset = '3px';
+    })), s.highlight, cfg.highlightColor || '#e11d48');
+  }
+
+  const file = path.join(OUT, s.name.endsWith('.png') ? s.name : `${s.name}.png`);
+  if (s.element) {
+    const el = await page.$(s.element);
+    if (!el) throw new Error(T.noElement(s.element));
+    await el.screenshot({ path: file });
+  } else {
+    await page.screenshot({ path: file, fullPage: !!s.fullPage });
+  }
+
+  if (s.highlight?.length) {
+    await page.evaluate((sels) => sels.forEach((sel) => document.querySelectorAll(sel).forEach((e) => {
+      e.style.outline = e.dataset.shotOutline || ''; e.style.outlineOffset = '';
+    })), s.highlight);
+  }
+  if (tag) await tag.evaluate((t) => t.remove());
+  return file;
+}
+
+// ---------- main ----------
+(async () => {
+  fs.mkdirSync(OUT, { recursive: true });
+  const shots = cfg.shots.filter((s) => !filters.length || filters.some((t) => s.name.includes(t)));
+  if (!shots.length) { console.log(T.noShots); return; }
+
+  const browser = await puppeteer.launch({
+    executablePath: findChrome(),
+    headless: cfg.headless ?? true,
+    defaultViewport: VIEWPORT,
+    acceptInsecureCerts: true,
+  });
+  const pages = {}; // one logged-in tab per session, reused across shots
+  const failed = [];
+
+  for (const s of shots) {
+    const key = s.session || '_guest';
+    try {
+      if (s.freshSession && pages[key]) { await pages[key].browserContext().close(); delete pages[key]; }
+      pages[key] ||= await newSession(browser, s.session);
+      const page = pages[key];
+      if (s.viewport) await page.setViewport({ ...VIEWPORT, ...s.viewport });
+      if (s.url) await page.goto(absUrl(s.url), { waitUntil: 'networkidle2' });
+      for (const l of s.steps) await run(page, l);
+      const file = await capture(page, s);
+      console.log(T.ok, path.relative(process.cwd(), file));
+      if (s.viewport) await page.setViewport(VIEWPORT);
+    } catch (e) {
+      failed.push(s.name);
+      console.log(T.fail, s.name, '-', e.message.split('\n')[0]);
+      // A session may be broken after an error (open modal etc.); start clean next time.
+      await pages[key]?.browserContext().close().catch(() => {});
+      delete pages[key];
+    }
+  }
+
+  await browser.close();
+  console.log(T.done(shots.length - failed.length, failed.length, OUT));
+  process.exit(failed.length ? 1 : 0);
+})().catch((e) => { console.error(e.message); process.exit(1); });

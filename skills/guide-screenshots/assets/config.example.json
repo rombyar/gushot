@@ -1,0 +1,37 @@
+{
+  "base": "http://localhost:3000",
+  "out": "output",
+  "viewport": { "width": 1280, "height": 900 },
+  "theme": "light",
+  "alwaysBlur": [".sensitive", "input[type=password]"],
+
+  "sessions": {
+    "admin": [
+      { "open": "/login" },
+      { "type": "input[name=email]", "text": "admin@example.com" },
+      { "type": "input[name=password]", "text": "{{APP_PASSWORD}}" },
+      { "click": "button[type=submit]" },
+      { "otp": {
+          "file": "logs/app.log",
+          "pattern": "OTP for admin@example\\.com: (\\d{6})",
+          "into": "input[name=otp]",
+          "submit": "button[type=submit]"
+      } },
+      { "wait": "nav" }
+    ]
+  },
+
+  "shots": [
+    { "name": "01_home", "url": "/" },
+    { "name": "02_login_page", "url": "/login", "highlight": ["button[type=submit]"] },
+    { "name": "03_dashboard", "session": "admin", "url": "/dashboard" },
+    { "name": "04_order_list", "session": "admin", "url": "/orders", "highlight": [".filter-button"] },
+    { "name": "05_add_order_form", "session": "admin", "url": "/orders",
+      "steps": [
+        { "clickText": "Add" },
+        { "wait": "[role=dialog]" }
+      ],
+      "element": "[role=dialog]" },
+    { "name": "06_home_mobile", "url": "/", "viewport": { "width": 390, "height": 844, "deviceScaleFactor": 2 }, "fullPage": true }
+  ]
+}
