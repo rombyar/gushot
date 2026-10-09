@@ -19,6 +19,8 @@ GuShot (Guide User Shot) membuat screenshot untuk buku panduan aplikasi web. Hal
 - [Masalah umum](#masalah-umum)
 - [Berkontribusi](#berkontribusi)
 
+Tutorial langkah demi langkah, lengkap dengan contoh yang bisa dijalankan dan diagram alur, ada di [docs/](docs/README.md) (bahasa Inggris).
+
 ## Kebutuhan
 
 - Node.js 18 atau lebih baru
@@ -205,6 +207,7 @@ Pakai data contoh dari seeder, bukan data pelanggan asli. Data pribadi tetap di-
 ```
 skills/guide-screenshots/   skill-nya: SKILL.md, scripts/shot.cjs, referensi, contoh config
 demo/                       aplikasi demo, config-nya, serta screenshot dan video hasilnya
+docs/                       tutorial, masing-masing dengan contoh config yang bisa dijalankan
 test/                       uji mandiri (tidak butuh server)
 .claude-plugin/             manifest plugin Claude Code
 ```

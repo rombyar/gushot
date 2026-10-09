@@ -1,0 +1,8 @@
+{
+  "out": "screenshots",
+  "viewport": { "width": 1100, "height": 640 },
+  "shots": [
+    { "name": "01_login_page", "url": "../../demo/app.html" },
+    { "name": "02_login_page_mobile", "url": "../../demo/app.html", "viewport": { "width": 390, "height": 700 } }
+  ]
+}

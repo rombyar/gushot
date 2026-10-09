@@ -19,6 +19,8 @@ GuShot (Guide User Shot) takes the screenshots for a web app's user guide. You d
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 
+Step-by-step tutorials with runnable examples and flow diagrams are in [docs/](docs/README.md).
+
 ## Requirements
 
 - Node.js 18 or newer
@@ -207,6 +209,7 @@ Indonesian config keys (`buka`, `klik`, `sorot`, ...) work as aliases of the Eng
 ```
 skills/guide-screenshots/   the skill: SKILL.md, scripts/shot.cjs, references, example config
 demo/                       demo app, its config, and the screenshots/video it produces
+docs/                       tutorials, each with a runnable example config
 test/                       self-test (no server needed)
 .claude-plugin/             Claude Code plugin manifests
 ```
