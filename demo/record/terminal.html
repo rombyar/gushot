@@ -1,0 +1,38 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>
+  body { margin: 0; height: 100vh; background: #0f172a; display: grid; place-items: center; font: 18px/1.7 Consolas, "Cascadia Mono", monospace; color: #e2e8f0; }
+  .win { width: 900px; background: #111827; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); overflow: hidden; }
+  .top { background: #1f2937; padding: 10px 14px; display: flex; gap: 8px; }
+  .top i { width: 12px; height: 12px; border-radius: 50%; background: #475569; }
+  pre { margin: 0; padding: 22px 26px; min-height: 300px; white-space: pre-wrap; font: inherit; }
+  .p { color: #4ade80; } .ok { color: #4ade80; } .dim { color: #94a3b8; }
+  .title { text-align: center; color: #fff; font: 700 34px system-ui, sans-serif; margin-bottom: 18px; }
+  .title span { color: #94a3b8; font-weight: 400; font-size: 20px; display: block; margin-top: 4px; }
+</style>
+<div>
+  <div class="title">GuShot<span>Screenshots for user guides, from one JSON config</span></div>
+  <div class="win"><div class="top"><i></i><i></i><i></i></div><pre id="t"></pre></div>
+</div>
+<script>
+  const t = document.getElementById('t');
+  const cmd = 'node shot.cjs gushot.json';
+  const lines = [
+    '<span class="ok">OK</span>    screenshots/01_login.png',
+    '<span class="ok">OK</span>    screenshots/02_dashboard.png',
+    '<span class="ok">OK</span>    screenshots/03_new_order.png',
+    '<span class="ok">OK</span>    screenshots/04_mobile.png',
+    '',
+    'Done: 4 OK, 0 failed. <span class="dim">Output in demo/screenshots</span>',
+  ];
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  (async () => {
+    await sleep(700);
+    t.innerHTML = '<span class="p">demo $</span> ';
+    for (const c of cmd) { t.innerHTML += c; await sleep(65); }
+    await sleep(500);
+    t.innerHTML += '\n';
+    for (const l of lines) { await sleep(l ? 550 : 200); t.innerHTML += l + '\n'; }
+    window.done = true;
+  })();
+</script>

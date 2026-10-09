@@ -7,7 +7,8 @@
 - `--check` runs every step without saving images, to find selectors broken by UI changes (works in CI).
 - `padding` on a shot with `element` keeps some of the page around the element. Indonesian alias: `jarak`.
 - Each `OK` line says `new`, `changed`, or `unchanged` compared with the previous file, plus a `Changed: X, new: Y.` summary, so you know which images to update in the guide.
-- Demo uses numbered steps in `01_login` and `03_new_order`; video and GIF re-recorded.
+- Demo uses numbered steps in `01_login` and `03_new_order`; video and GIF re-recorded. The video's last scene now shows the four screenshots (it was blank), and the recorder lives in `demo/record/`.
+- CI runs the self-test on Ubuntu, Windows, and macOS.
 
 ## 1.0.0 (2026-10-09)
 

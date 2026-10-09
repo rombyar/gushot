@@ -10,6 +10,7 @@ A fake orders app, "Kedai Orders", in a single HTML file, and the GuShot config 
 | [`gushot.json`](gushot.json) | the config that logs in and takes the four screenshots |
 | [`screenshots/`](screenshots/) | the result, committed so you can see it without running anything |
 | [`gushot-demo.mp4`](gushot-demo.mp4), [`gushot-demo.gif`](gushot-demo.gif) | a 30-second recording of the run |
+| [`record/`](record/) | the script that makes the video: `node demo/record/record.cjs` from the repo root (needs ffmpeg) |
 
 ## Run it
 
@@ -61,6 +62,7 @@ Aplikasi pesanan fiktif "Kedai Orders" dalam satu file HTML, beserta config GuSh
 | [`gushot.json`](gushot.json) | config yang login lalu mengambil empat screenshot |
 | [`screenshots/`](screenshots/) | hasilnya, ikut di-commit supaya bisa dilihat tanpa menjalankan apa pun |
 | [`gushot-demo.mp4`](gushot-demo.mp4), [`gushot-demo.gif`](gushot-demo.gif) | rekaman 30 detik saat dijalankan |
+| [`record/`](record/) | skrip pembuat video: `node demo/record/record.cjs` dari folder utama repo (butuh ffmpeg) |
 
 ### Menjalankan
 

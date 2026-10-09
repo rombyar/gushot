@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>
+  body { margin: 0; height: 100vh; background: #0f172a; color: #fff; font: 16px system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+  h1 { margin: 0; font-size: 26px; }
+  .grid { display: flex; gap: 14px; align-items: flex-start; }
+  figure { margin: 0; text-align: center; opacity: 0; transform: translateY(12px); animation: in .5s forwards; }
+  figure:nth-child(2) { animation-delay: .35s; } figure:nth-child(3) { animation-delay: .7s; } figure:nth-child(4) { animation-delay: 1.05s; }
+  img { display: block; max-height: 380px; border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,.4); background: #fff; }
+  figcaption { margin-top: 8px; color: #cbd5e1; font: 14px Consolas, monospace; }
+  @keyframes in { to { opacity: 1; transform: none; } }
+  /* Screencast only sends frames when something repaints; this bar keeps frames coming. */
+  .bar { width: 320px; height: 3px; background: #1e293b; border-radius: 2px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: #3b82f6; animation: fill 4.5s linear forwards; }
+  @keyframes fill { to { width: 100%; } }
+</style>
+<h1>4 screenshots, ready for the guide</h1>
+<div class="grid">
+  <figure><img src="../screenshots/01_login.png" style="width:250px"><figcaption>01_login</figcaption></figure>
+  <figure><img src="../screenshots/02_dashboard.png" style="width:300px"><figcaption>02_dashboard</figcaption></figure>
+  <figure><img src="../screenshots/03_new_order.png" style="width:200px"><figcaption>03_new_order</figcaption></figure>
+  <figure><img src="../screenshots/04_mobile.png" style="width:150px"><figcaption>04_mobile</figcaption></figure>
+</div>
+<div class="bar"><i></i></div>
