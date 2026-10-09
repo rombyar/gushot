@@ -133,9 +133,13 @@ node <path>/shot.cjs panduan.json 03 login    # hanya shot yang namanya mengandu
 
 ## Dipakai lewat agen AI
 
-GuShot juga sebuah [Agent Skill](https://agentskills.io): agen membaca kode aplikasi Anda untuk memahami alur login, menulis config, menjalankannya, lalu memeriksa hasilnya.
+GuShot juga sebuah [Agent Skill](https://agentskills.io). Setelah dipasang, cukup minta ke agen dengan bahasa biasa ("buatkan screenshot halaman login dan dasbor untuk buku panduan"). Agen akan membaca kode aplikasi Anda untuk memahami alur login, menulis config, menjalankannya, lalu memeriksa gambarnya.
 
-**Claude Code:**
+Agennya harus bisa menjalankan perintah di komputer yang sama dengan aplikasi Anda, atau yang bisa mengaksesnya. Agen yang berjalan di sandbox cloud, misalnya chat di browser, tidak bisa membuka `localhost` Anda dan tidak punya Chrome.
+
+### Claude Code
+
+Pasang sebagai plugin:
 
 ```
 /plugin marketplace add rombyar/gushot
@@ -144,9 +148,40 @@ GuShot juga sebuah [Agent Skill](https://agentskills.io): agen membaca kode apli
 
 Lalu di proyek Anda: `/guide-screenshots buatkan screenshot halaman login dan dasbor`.
 
-**Agen lain** yang mendukung Agent Skills: salin folder [`skills/guide-screenshots/`](skills/guide-screenshots/) ke folder skill agen tersebut. Semua yang dibutuhkan ada di folder itu.
+### Codex, GitHub Copilot, Cursor, Gemini CLI, dan lainnya
 
-Agennya harus bisa menjalankan perintah di komputer yang sama dengan aplikasi Anda (atau yang bisa mengaksesnya). Agen yang berjalan di sandbox cloud, misalnya chat di browser, tidak bisa membuka `localhost` Anda dan tidak punya Chrome.
+Sebagian besar agen membaca skill dari folder `skills`. Salin folder `guide-screenshots` ke sana:
+
+```bash
+git clone https://github.com/rombyar/gushot.git
+mkdir -p ~/.agents/skills
+cp -r gushot/skills/guide-screenshots ~/.agents/skills/
+```
+
+```powershell
+# Windows PowerShell
+git clone https://github.com/rombyar/gushot.git
+New-Item -ItemType Directory -Force "$HOME\.agents\skills" | Out-Null
+Copy-Item -Recurse gushot\skills\guide-screenshots "$HOME\.agents\skills\"
+```
+
+Dengan `~/.agents/skills/`, skill bisa dipakai di semua proyek Anda. Kalau ingin dibagikan ke tim, salin ke `.agents/skills/` di dalam proyek lalu commit.
+
+| Agen | Folder yang dibaca (pribadi / proyek) | Cara memanggil skill |
+|---|---|---|
+| [Codex](https://learn.chatgpt.com/docs/build-skills) (CLI, IDE) | `~/.agents/skills/` / `.agents/skills/` | ketik `$guide-screenshots`, atau langsung jelaskan tugasnya |
+| [GitHub Copilot](https://code.visualstudio.com/docs/copilot/customization/agent-skills) (agent mode VS Code) | `~/.agents/skills/`, `~/.copilot/skills/` / `.agents/skills/`, `.github/skills/` | ketik `/guide-screenshots` di chat |
+| [Cursor](https://cursor.com/docs/context/skills) | `~/.agents/skills/`, `~/.cursor/skills/` / `.agents/skills/`, `.cursor/skills/` | ketik `/guide-screenshots` di Agent chat |
+| [Gemini CLI](https://geminicli.com/docs/cli/skills/) | `~/.agents/skills/`, `~/.gemini/skills/` / `.agents/skills/`, `.gemini/skills/` | jelaskan tugasnya; Gemini akan minta izin mengaktifkan skill |
+| Claude Code tanpa plugin | `~/.claude/skills/` / `.claude/skills/` | ketik `/guide-screenshots` |
+
+Gemini CLI juga bisa memasangnya langsung dari GitHub:
+
+```bash
+gemini skills install https://github.com/rombyar/gushot.git --path skills/guide-screenshots
+```
+
+Untuk agen lain, lihat [daftar agen yang mendukung skill](https://agentskills.io) dan dokumentasinya untuk nama foldernya. Folder skill sudah berisi semua yang dibutuhkan; saat pertama dipakai, agen akan memasang satu dependensinya di dalam folder itu.
 
 ## Masalah umum
 

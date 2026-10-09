@@ -131,9 +131,13 @@ node <path-to>/shot.cjs my-guide.json 03 login    # only shots whose name contai
 
 ## Using it with an AI agent
 
-GuShot is also an [Agent Skill](https://agentskills.io): the agent reads your app's code to find the login flow, writes the config, runs it, and checks the result.
+GuShot is also an [Agent Skill](https://agentskills.io). Once installed, you ask the agent in plain words ("make screenshots of the login page and the dashboard for the user guide"). It reads your app's code to work out the login flow, writes the config, runs it, and checks the images.
 
-**Claude Code:**
+The agent has to run commands on the same machine as your app, or one that can reach it. Agents that run in a cloud sandbox, such as a chat in the browser, cannot open your `localhost` and have no Chrome.
+
+### Claude Code
+
+Install it as a plugin:
 
 ```
 /plugin marketplace add rombyar/gushot
@@ -142,9 +146,40 @@ GuShot is also an [Agent Skill](https://agentskills.io): the agent reads your ap
 
 Then, in your project: `/guide-screenshots capture the login page and the dashboard`.
 
-**Other agents** that support Agent Skills: copy [`skills/guide-screenshots/`](skills/guide-screenshots/) into the agent's skills folder. The folder has everything it needs.
+### Codex, GitHub Copilot, Cursor, Gemini CLI, and others
 
-The agent has to run commands on the same machine as your app (or one that can reach it). Agents that run in a cloud sandbox, such as a chat in the browser, cannot open your `localhost` and have no Chrome.
+Most agents load skills from a `skills` folder. Copy the `guide-screenshots` folder there:
+
+```bash
+git clone https://github.com/rombyar/gushot.git
+mkdir -p ~/.agents/skills
+cp -r gushot/skills/guide-screenshots ~/.agents/skills/
+```
+
+```powershell
+# Windows PowerShell
+git clone https://github.com/rombyar/gushot.git
+New-Item -ItemType Directory -Force "$HOME\.agents\skills" | Out-Null
+Copy-Item -Recurse gushot\skills\guide-screenshots "$HOME\.agents\skills\"
+```
+
+`~/.agents/skills/` makes the skill available in all your projects. To share it with a team instead, copy it into `.agents/skills/` inside the project and commit it.
+
+| Agent | Folder it reads (personal / project) | How to call the skill |
+|---|---|---|
+| [Codex](https://learn.chatgpt.com/docs/build-skills) (CLI, IDE) | `~/.agents/skills/` / `.agents/skills/` | type `$guide-screenshots`, or just describe the task |
+| [GitHub Copilot](https://code.visualstudio.com/docs/copilot/customization/agent-skills) (VS Code agent mode) | `~/.agents/skills/`, `~/.copilot/skills/` / `.agents/skills/`, `.github/skills/` | type `/guide-screenshots` in chat |
+| [Cursor](https://cursor.com/docs/context/skills) | `~/.agents/skills/`, `~/.cursor/skills/` / `.agents/skills/`, `.cursor/skills/` | type `/guide-screenshots` in Agent chat |
+| [Gemini CLI](https://geminicli.com/docs/cli/skills/) | `~/.agents/skills/`, `~/.gemini/skills/` / `.agents/skills/`, `.gemini/skills/` | describe the task; Gemini asks to activate the skill |
+| Claude Code without the plugin | `~/.claude/skills/` / `.claude/skills/` | type `/guide-screenshots` |
+
+Gemini CLI can also install it straight from GitHub:
+
+```bash
+gemini skills install https://github.com/rombyar/gushot.git --path skills/guide-screenshots
+```
+
+For any other agent, check [the list of agents that support skills](https://agentskills.io) and its docs for the folder name. The skill folder has everything it needs; on the first run the agent installs its one dependency inside it.
 
 ## Troubleshooting
 
